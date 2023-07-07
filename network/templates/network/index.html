@@ -1,0 +1,72 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container">
+    {% if user.is_authenticated %}
+    <form class="mt-4" action="{% url 'posts' %}" method="post">
+        {% csrf_token %}
+        <textarea class="form-control" placeholder="Post" name="content"></textarea>
+        <input type="submit" class="btn btn-primary mb-4 mt-2" value="New Post" />
+    </form>
+    {% endif %}
+
+    <h4>All Posts</h4>
+    {% for post in posts %}
+    <div class="border p-2 mb-2 rounded-lg">
+        <h6><a href="{% url 'profile' post.creator %}" class="text-dark">{{ post.creator }}</a></h6>
+        {% if user.is_authenticated %}
+        {% if user.username == post.creator %}
+        <button class="border-0 text-primary bg-white outline-0 mb-2 p-0"
+            onclick="showEdit(this, '{{post.id}}')">Edit</button>
+        {% endif %}
+        {% endif %}
+        <p class="text-secondary font-italic mb-2">{{ post.content }}</p>
+        <p class="text-secondary mb-2">
+            <small>
+                {{ post.timestamp }}
+            </small>
+        </p>
+        <p class="text-secondary mb-2">{{ post.likes }} like{% if post.likes == 1 %}{% else %}s{% endif %}</p>
+        {% if user.is_authenticated %}
+        <i style="cursor: pointer;"
+            class="fa {% if post.id in likes %}fa-thumbs-down{% endif %}{% if post.id not in likes %}fa-thumbs-up{% endif %}"
+            onclick="updateLike(this,'{{post.id}}')"></i>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination d-flex align-items-center">
+            {% if posts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; first</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ posts.previous_page_number }}">previous</a>
+            </li>
+            {% endif %}
+            <span class="px-2">
+                <small>
+                    Page {{ posts.number }} of {{ posts.paginator.num_pages }}
+                </small>
+            </span>
+            {% if posts.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ posts.next_page_number }}">next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ posts.paginator.num_pages }}">last &raquo;</a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'network/index.js' %}"></script>
+{% endblock %}
